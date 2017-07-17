@@ -1,15 +1,18 @@
 package com.test.rest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.test.constants.ConstantsCommon;
-import com.test.model.WeatherObject;
+import com.test.model.Empleado;
 import com.test.utils.KelvinConverter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -18,17 +21,16 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 public class ApiCommunication {
 
-	public WeatherObject doCommunication() {
+	public ArrayList<Empleado> doCommunication() {
 
-		WeatherObject wObject = new WeatherObject();
+		ArrayList<Empleado> listaEmpleados = new ArrayList<Empleado>();
+		
 		try {
 
-			String url = ConstantsCommon.URL_GETID;
-			String id = ConstantsCommon.CITY_CODE;
+			String url = ConstantsCommon.URL_GET;
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpGet getRequest = new HttpGet(url + id + "&appid="
-					+ ConstantsCommon.API_KEY);
+			HttpGet getRequest = new HttpGet(url);
 
 			getRequest.addHeader("accept", "application/json");
 
@@ -44,35 +46,29 @@ public class ApiCommunication {
 
 			String output;
 			StringBuilder sb = new StringBuilder();
-			
+
 			System.out.println("Server: \n");
 			while ((output = br.readLine()) != null) {
 				sb.append(output);
 			}
 
 			Gson gson = new Gson();
-			
-			JsonObject jObject = gson.fromJson(sb.toString(), JsonObject.class);
-			
-			String currentStatus = jObject.get("weather").getAsJsonArray()
-					.get(0).getAsJsonObject().get("main").getAsString();
-			String currentStatusInfo = jObject.get("weather").getAsJsonArray()
-					.get(0).getAsJsonObject().get("description").getAsString();
-			float currentTemp = KelvinConverter.convertKelvinToCelsius(jObject
-					.get("main").getAsJsonObject().get("temp").getAsFloat());
-			float maxTemp = KelvinConverter
-					.convertKelvinToCelsius(jObject.get("main")
-							.getAsJsonObject().get("temp_max").getAsFloat());
-			float minTemp = KelvinConverter
-					.convertKelvinToCelsius(jObject.get("main")
-							.getAsJsonObject().get("temp_min").getAsFloat());
 
-			wObject = new WeatherObject(currentStatus, currentStatusInfo,
-					currentTemp, maxTemp, minTemp);
+			JsonArray jArray = gson.fromJson(sb.toString(), JsonArray.class);
+
+			Iterator it = jArray.iterator();
+
+			while (it.hasNext()) {
+				JsonObject jObject = (JsonObject) it.next();
+				String id = jObject.get("id").getAsString();
+				String name = jObject.get("name").getAsString();
+				String email = jObject.get("email").getAsString();
+
+				Empleado eObject = new Empleado(id, name, email);
+				listaEmpleados.add(eObject);
+			}
 
 			httpClient.getConnectionManager().shutdown();
-
-			return wObject;
 
 		} catch (ClientProtocolException e) {
 
@@ -82,6 +78,7 @@ public class ApiCommunication {
 
 			e.printStackTrace();
 		}
-		return wObject;
+
+		return listaEmpleados;
 	}
 }

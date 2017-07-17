@@ -1,10 +1,11 @@
 package com.test;
 
 import com.liferay.util.bridges.mvc.MVCPortlet;
-import com.test.model.WeatherObject;
+import com.test.model.Empleado;
 import com.test.rest.ApiCommunication;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
@@ -21,16 +22,16 @@ public class RestConsumingPortlet extends MVCPortlet {
 	public void doView(RenderRequest renderRequest,
 			RenderResponse renderResponse) throws IOException, PortletException {
 
-		WeatherObject wObject = null;
+		ArrayList<Empleado> listaEmpleados = null;
 
 		try {
-			wObject = comm.doCommunication();
+			listaEmpleados = comm.doCommunication();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		if (wObject != null)
-			renderRequest.setAttribute("weather", wObject);
+		if (listaEmpleados.size() > 0)
+			renderRequest.setAttribute("listaEmpleados", listaEmpleados);
 
 		include(viewTemplate, renderRequest, renderResponse);
 	}
